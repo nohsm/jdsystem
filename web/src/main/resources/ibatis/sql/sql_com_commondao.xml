@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap>
+
+	<typeAlias alias="commonVO" type="jd.web.com.vo.CommonVO" />
+	
+	<insert id="commonDAO.insert" parameterClass="commonVO">
+        INSERT INTO TEST (
+             ID
+            ,PASSWORD
+        ) VALUES (
+             #id#
+            ,#password#
+        )
+    </insert>
+    
+    <select id="commonDAO.list" parameterClass="commonVO" resultClass="commonVO">
+  		<![CDATA[
+   		SELECT
+    		ID AS id
+    		, PASSWORD AS PASSWORD
+   		FROM TEST
+   		ORDER BY ID DESC
+   		limit #firstRecordIndex#, #recordCountPerPage#
+  		]]>
+ 	</select>
+ 
+ 	<select id="commonDAO.count" parameterClass="commonVO" resultClass="int">
+	  	<![CDATA[
+	   	SELECT COUNT(*) totcnt
+	   	FROM TEST
+	  	]]>
+ 	</select>
+</sqlMap>

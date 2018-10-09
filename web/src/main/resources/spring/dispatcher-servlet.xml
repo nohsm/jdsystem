@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:mvc="http://www.springframework.org/schema/mvc" xmlns:task="http://www.springframework.org/schema/task"
+	xmlns:tx="http://www.springframework.org/schema/tx" xmlns:aop="http://www.springframework.org/schema/aop"
+	xsi:schemaLocation="
+        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
+        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.2.xsd
+        http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-3.2.xsd
+        http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.2.xsd
+        http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-3.2.xsd
+        http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.2.xsd">
+
+	<!-- Enables the Spring MVC @Controller programming model -->
+	<mvc:annotation-driven>
+  		<mvc:argument-resolvers>
+    		<bean class="org.springframework.mobile.device.DeviceWebArgumentResolver" />
+     	</mvc:argument-resolvers>
+ 	</mvc:annotation-driven>
+	
+	<context:component-scan base-package="jd.web"/>
+
+	<mvc:interceptors>
+		<mvc:interceptor>
+   			<mvc:mapping path="/**/*.do"/>
+   			<bean class="jd.com.interceptor.InterceptorRequest"/>
+  		</mvc:interceptor>
+		<mvc:interceptor>
+			<mvc:mapping path="/**/*.do"/>
+			<mvc:exclude-mapping path="/testNoInterceptor.do"/>
+			<bean class="jd.com.interceptor.InterceptorCommon"/>
+		</mvc:interceptor>
+		<mvc:interceptor>
+			<mvc:mapping path="/**/*.do"/>
+			<mvc:exclude-mapping path="/testNoInterceptor.do"/>
+			<bean class="jd.com.interceptor.InterceptorSecurity"/>
+		</mvc:interceptor>
+		<mvc:interceptor>
+		   	<mvc:mapping path="/**/*.do"/>
+		   	<bean class="org.springframework.mobile.device.DeviceResolverHandlerInterceptor"/>
+		</mvc:interceptor>
+		<mvc:interceptor>
+   			<mvc:mapping path="/**/*.do"/>
+   			<mvc:exclude-mapping path="/loginForm.do"/>
+   			<mvc:exclude-mapping path="/login.do"/>
+   			<mvc:exclude-mapping path="/sendMail.do"/>
+   			<bean class="jd.com.interceptor.InterceptorSession">
+    			<property name="sessionName" value="ssInfo"/>
+          		<property name="redirectUrl" value="/loginForm.do"/>
+   			</bean>
+  		</mvc:interceptor>
+	</mvc:interceptors>
+
+	<!-- Resolves views selected for rendering by @Controllers to .jsp resources in the /WEB-INF/views directory -->
+	<bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+		<property name="prefix" value="/WEB-INF/jsp/"/>
+		<property name="suffix" value=".jsp"/>
+	</bean>
+
+	<bean id="jsonView" name="jsonView" class="org.springframework.web.servlet.view.json.MappingJackson2JsonView"/>
+	
+	<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="dataSource"/>
+	</bean>
+
+	<aop:config proxy-target-class="true">
+		<aop:pointcut id="txAdvisePointCut" expression="execution(* jd.web..*Service.*(..))"/>
+		<aop:advisor id="transactionAdvisor" pointcut-ref="txAdvisePointCut" advice-ref="txAdvice"/>
+	</aop:config>
+
+	<tx:advice id="txAdvice" transaction-manager="transactionManager">
+		<tx:attributes>
+			<tx:method name="get*" read-only="true"/>
+			<tx:method name="find*" read-only="true"/>
+			<tx:method name="insert*" propagation="REQUIRED" rollback-for="Exception"/>
+			<tx:method name="update*" propagation="REQUIRED" rollback-for="Exception"/>
+			<tx:method name="delete*" propagation="REQUIRED" rollback-for="Exception"/>
+		</tx:attributes>
+	</tx:advice>
+	
+	<!-- 
+	<bean class="org.springframework.web.servlet.handler.SimpleMappingExceptionResolver"> 
+		<property name="defaultErrorView" value="com/error2"/> 
+		<property name="exceptionMappings"> 
+			<props>
+				<prop key="org.springframework.dao.DataAccessException">com/error</prop> 
+				<prop key="org.springframework.transaction.TransactionException">com/error</prop> 
+			</props> 
+		</property> 
+	</bean>
+ 	-->
+</beans>
